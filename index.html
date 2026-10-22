@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>臺北市大同區日新國小觀課巡堂紀錄表</title>
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS (Excel/CSV 解析) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- html2pdf.js (A4 PDF 高畫質匯出) -->
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Google Fonts Noto Sans TC -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -20,55 +18,49 @@
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #0f172a;
             color: #1e293b;
-            margin: 0;
-            padding: 0;
         }
 
-        /* 嚴格的 A4 雙頁規格 CSS (210mm x 297mm) */
-        .pdf-page {
-            width: 210mm;
-            height: 295mm;
-            max-height: 295mm;
-            margin: 0 auto;
-            background: #ffffff;
-            box-sizing: border-box;
-            padding: 10mm 12mm;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* 強制分頁規則 (避免生成第三頁) */
-        .page-break {
-            page-break-before: always !important;
-            break-before: page !important;
-        }
-
+        /* Print & PDF Page Break Rules */
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; }
-            .pdf-page {
+            body { background: white !important; padding: 0 !important; }
+            .a4-page {
                 box-shadow: none !important;
                 border: none !important;
                 margin: 0 !important;
                 width: 100% !important;
-                height: 297mm !important;
+                padding: 10mm !important;
             }
         }
 
-        /* 座位卡片狀態樣式 */
+        .page-break-before {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        /* Seat Card States */
         .seat-card {
             transition: all 0.15s ease-in-out;
         }
-        .seat-state-present   { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; }
-        .seat-state-focus     { background-color: #fefce8; border-color: #fef08a; color: #854d0e; }
-        .seat-state-absent    { background-color: #fef2f2; border-color: #fecaca; color: #991b1b; }
-        .seat-state-active    { background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+        .seat-state-present { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+        .seat-state-focus   { background-color: #fefce8; border-color: #fef08a; color: #854d0e; }
+        .seat-state-absent  { background-color: #fef2f2; border-color: #fecaca; color: #991b1b; }
+        .seat-state-active  { background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
         .seat-state-nostudent { background-color: #f8fafc; border-color: #cbd5e1; color: #64748b; opacity: 0.55; }
 
-        /* 自訂細軸滾動條 */
+        /* A4 Page Simulation for Display & Preview */
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            padding: 12mm 15mm;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Custom Scrollbars */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
@@ -76,17 +68,17 @@
 </head>
 <body class="min-h-screen pb-16 text-slate-800">
 
-    <!-- 頂部固定操作列 (標有 no-print，預覽/PDF 絕不上頁) -->
+    <!-- 頂部固定操作列 (不列印/不進入PDF) -->
     <header class="bg-slate-900/95 backdrop-blur text-white p-3.5 sticky top-0 z-40 shadow-xl border-b border-slate-800 no-print">
         <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3">
             <div class="flex items-center gap-2">
-                <span class="bg-amber-500 text-slate-950 p-1.5 rounded-lg text-lg font-black flex items-center justify-center w-8 h-8">
+                <span class="bg-amber-500 text-slate-900 p-1.5 rounded-lg text-lg font-black flex items-center justify-center w-8 h-8">
                     <i class="fa-solid fa-clipboard-check"></i>
                 </span>
                 <h1 class="text-lg font-bold tracking-wide">日新國小觀課巡堂紀錄系統</h1>
             </div>
 
-            <!-- 操作功能按鈕組 -->
+            <!-- 操作功能按鈕群 -->
             <div class="flex flex-wrap items-center gap-2 text-xs md:text-sm font-medium">
                 <button onclick="saveRecord()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md active:scale-95">
                     <i class="fa-solid fa-floppy-disk"></i> 💾 儲存紀錄
@@ -107,112 +99,91 @@
         </div>
     </header>
 
-    <!-- 浮動通知訊息 (Toast) -->
+    <!-- 提示通知 (Toast) -->
     <div id="toast" class="fixed top-16 right-5 z-50 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-700 transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-2 text-sm">
         <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toast-msg">操作成功</span>
     </div>
 
-    <!-- 主要內容區 (標準 A4 雙頁 PDF 導出目標容器) -->
-    <main class="max-w-6xl mx-auto mt-4 px-2 flex flex-col items-center gap-8">
+    <!-- 主要視窗與匯出PDF區域 -->
+    <main class="max-w-6xl mx-auto mt-6 px-2 flex flex-col items-center gap-8">
 
         <div id="pdf-export-wrapper" class="flex flex-col gap-8 w-full items-center">
 
-            <!-- ================= 第一頁 (Page 1)：基本資訊與班級座位地圖 ================= -->
-            <section id="pdf-page-1" class="pdf-page shadow-2xl rounded-none md:rounded-xl">
-                <div>
-                    <!-- 主標題 (無副標題) -->
-                    <div class="text-center mb-3 pb-2 border-b-2 border-slate-900">
-                        <h2 class="text-2xl font-black text-slate-900 tracking-wider">臺北市大同區日新國小觀課巡堂紀錄表</h2>
+            <!-- ================= 第一頁：基本資訊與班級座位地圖 ================= -->
+            <section id="page-1" class="a4-container rounded-none md:rounded-xl">
+                
+                <!-- 主標題 (無副標題) -->
+                <div class="text-center mb-5 pb-3 border-b-2 border-slate-800">
+                    <h2 class="text-2xl font-black text-slate-900 tracking-wider">臺北市大同區日新國小觀課巡堂紀錄表</h2>
+                </div>
+
+                <!-- 基本資訊欄位 Grid -->
+                <div class="grid grid-cols-5 gap-3 mb-5 text-xs md:text-sm">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">班級</label>
+                        <input type="text" id="info-class" placeholder="例：五年三班" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
                     </div>
-
-                    <!-- 基本資訊欄位 Grid -->
-                    <div class="grid grid-cols-5 gap-2.5 mb-3 text-xs md:text-sm">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">班級</label>
-                            <input type="text" id="info-class" placeholder="例：五年三班" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">任課老師</label>
-                            <input type="text" id="info-teacher" placeholder="請輸入姓名" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">觀課巡堂時間</label>
-                            <input type="datetime-local" id="info-datetime" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">節次</label>
-                            <select id="info-section" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
-                                <option value="第一節">第一節</option>
-                                <option value="第二節">第二節</option>
-                                <option value="第三節">第三節</option>
-                                <option value="第四節">第四節</option>
-                                <option value="第五節">第五節</option>
-                                <option value="第六節">第六節</option>
-                                <option value="第七節">第七節</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">科目</label>
-                            <input type="text" id="info-subject" placeholder="例：數學" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
-                        </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">任課老師</label>
+                        <input type="text" id="info-teacher" placeholder="請輸入姓名" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
                     </div>
-
-                    <!-- 講台與門口標示列 -->
-                    <div class="relative mb-3">
-                        <div class="bg-slate-800 text-white text-center py-1.5 rounded-lg font-bold text-xs md:text-sm tracking-widest shadow-inner">
-                            💻 黑板 / 講台方向
-                        </div>
-                        <div class="absolute right-0 top-0 bottom-0 bg-amber-500 text-slate-950 font-black text-xs px-3 rounded-r-lg flex items-center shadow">
-                            🚪 門口方向
-                        </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">觀課巡堂時間</label>
+                        <input type="datetime-local" id="info-datetime" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
                     </div>
-
-                    <!-- 座位地圖設定與檔案操作工具列 (包含兩顆帶有 no-print 的按鈕) -->
-                    <div class="flex flex-wrap justify-between items-center mb-2.5 text-xs text-slate-600 gap-2">
-                        <span class="font-bold text-slate-700 flex items-center gap-1">
-                            <i class="fa-solid fa-sliders text-indigo-500"></i> 座位地圖設定
-                        </span>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <!-- 上傳座位圖或名單按鈕 (帶 no-print，PDF 中自動隱藏) -->
-                            <label class="no-print bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold border border-emerald-300 px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1.5 transition shadow-2xs">
-                                <i class="fa-solid fa-file-import text-emerald-700"></i> 📥 上傳座位圖或名單
-                                <input type="file" id="seat-import-input" accept=".xlsx, .xls, .csv, image/*" onchange="handleSeatImport(event)" class="hidden">
-                            </label>
-
-                            <!-- 下載範例檔按鈕 (帶 no-print，PDF 中自動隱藏) -->
-                            <button onclick="downloadSampleCSV()" class="no-print bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 shadow-2xs">
-                                <i class="fa-solid fa-file-csv text-blue-600"></i> 📄 下載範例檔
-                            </button>
-
-                            <label class="flex items-center gap-1 no-print ml-2">
-                                <span class="font-bold text-slate-700">排數：</span>
-                                <input type="number" id="cfg-cols" min="1" max="10" value="5" onchange="renderSeating()" class="w-12 border border-slate-300 rounded px-1.5 py-0.5 text-center font-bold">
-                            </label>
-                            <label class="flex items-center gap-1 no-print">
-                                <span class="font-bold text-slate-700">每排人數：</span>
-                                <input type="number" id="cfg-rows" min="1" max="10" value="5" onchange="renderSeating()" class="w-12 border border-slate-300 rounded px-1.5 py-0.5 text-center font-bold">
-                            </label>
-                        </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">節次</label>
+                        <select id="info-section" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
+                            <option value="第一節">第一節</option>
+                            <option value="第二節">第二節</option>
+                            <option value="第三節">第三節</option>
+                            <option value="第四節">第四節</option>
+                            <option value="第五節">第五節</option>
+                            <option value="第六節">第六節</option>
+                            <option value="第七節">第七節</option>
+                        </select>
                     </div>
-
-                    <!-- 參考圖片預覽區域 (上傳圖檔時顯示) -->
-                    <div id="seating-image-preview-container" class="hidden mb-2 border border-indigo-200 rounded-xl p-2 bg-indigo-50/50 relative">
-                        <div class="flex justify-between items-center text-xs font-bold text-indigo-900 mb-1">
-                            <span><i class="fa-solid fa-image"></i> 參考座位圖底圖</span>
-                            <button onclick="removeSeatingImage()" class="no-print text-rose-600 hover:text-rose-800 text-xs font-bold"><i class="fa-solid fa-xmark"></i> 移除圖片</button>
-                        </div>
-                        <img id="seating-image-preview" src="" class="max-h-40 w-auto mx-auto rounded border object-contain">
-                    </div>
-
-                    <!-- 班級座位配置 Grid (最右邊為第 1 排靠門，最左邊為最高排數) -->
-                    <div id="seating-grid-container" class="w-full overflow-hidden">
-                        <!-- 動態由 JS 生成 -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">科目</label>
+                        <input type="text" id="info-subject" placeholder="例：數學" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 outline-none focus:border-indigo-500 focus:bg-white">
                     </div>
                 </div>
 
-                <!-- 狀態圖例與全班人數 (頁面 1 最底部) -->
-                <div class="pt-2.5 border-t border-slate-200 flex flex-wrap justify-between items-center text-xs text-slate-700 gap-2">
+                <!-- 講台與門口標示列 -->
+                <div class="relative mb-4">
+                    <div class="bg-slate-800 text-white text-center py-2 rounded-lg font-bold text-xs md:text-sm tracking-widest shadow-inner">
+                        💻 黑板 / 講台方向
+                    </div>
+                    <div class="absolute right-0 top-0 bottom-0 bg-amber-500 text-slate-950 font-black text-xs px-3 rounded-r-lg flex items-center shadow">
+                        🚪 門口方向
+                    </div>
+                </div>
+
+                <!-- 排數與每排人數微調選單 (不列印) -->
+                <div class="flex justify-between items-center mb-3 text-xs text-slate-600 no-print">
+                    <span class="font-bold text-slate-700 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-indigo-500"></i> 座位地圖設定
+                    </span>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-1">
+                            <span>排數：</span>
+                            <input type="number" id="cfg-cols" min="1" max="10" value="6" onchange="renderSeating()" class="w-12 border border-slate-300 rounded px-1.5 py-0.5 text-center font-bold">
+                        </label>
+                        <label class="flex items-center gap-1">
+                            <span>每排人數：</span>
+                            <input type="number" id="cfg-rows" min="1" max="10" value="5" onchange="renderSeating()" class="w-12 border border-slate-300 rounded px-1.5 py-0.5 text-center font-bold">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 班級座位配置 Grid (最右邊為第 1 排靠門，最左邊為最高排數) -->
+                <div id="seating-grid-container" class="w-full overflow-hidden">
+                    <!-- 動態由 JS 生成 -->
+                </div>
+
+                <!-- 狀態圖例與總人數 -->
+                <div class="mt-4 pt-3 border-t border-slate-200 flex flex-wrap justify-between items-center text-xs text-slate-700 gap-2">
                     <div class="flex flex-wrap items-center gap-3">
                         <span class="flex items-center gap-1 font-medium"><span class="w-3 h-3 rounded-full bg-emerald-200 border border-emerald-500 inline-block"></span> 出席</span>
                         <span class="flex items-center gap-1 font-medium"><span class="w-3 h-3 rounded-full bg-amber-200 border border-amber-500 inline-block"></span> 關注</span>
@@ -221,24 +192,24 @@
                         <span class="flex items-center gap-1 font-medium"><span class="w-3 h-3 rounded-full bg-slate-200 border border-slate-400 inline-block opacity-60"></span> 無學生</span>
                     </div>
                     <div class="font-extrabold text-slate-800">
-                        全班總人數：<span id="total-students-count" class="text-indigo-600 font-black text-sm">25</span> 人
+                        全班總人數：<span id="total-students-count" class="text-indigo-600 font-black text-sm">30</span> 人
                     </div>
                 </div>
             </section>
 
 
-            <!-- ================= 第二頁 (Page 2)：觀課巡堂紀錄重點與簽核區 ================= -->
-            <section id="pdf-page-2" class="pdf-page shadow-2xl rounded-none md:rounded-xl page-break">
+            <!-- ================= 第二頁：觀課巡堂紀錄重點與簽核區 ================= -->
+            <section id="page-2" class="a4-container rounded-none md:rounded-xl page-break-before flex flex-col justify-between">
                 
-                <div class="flex-1 flex flex-col justify-start">
+                <div>
                     <!-- 第二頁標題 -->
-                    <div class="flex items-center gap-2 mb-3 pb-1.5 border-b-2 border-slate-900">
+                    <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-slate-800">
                         <i class="fa-solid fa-pen-to-square text-indigo-600 text-lg"></i>
                         <h3 class="text-lg font-black text-slate-900 tracking-wide">觀課巡堂紀錄重點</h3>
                     </div>
 
                     <!-- 學生情形與老師授課情形 (大空間輸入框) -->
-                    <div class="grid grid-cols-2 gap-4 mb-3">
+                    <div class="grid grid-cols-2 gap-4 mb-5">
                         
                         <!-- 學生上課情形 -->
                         <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50 flex flex-col justify-between">
@@ -252,7 +223,7 @@
                                         <input type="file" accept="image/*" onchange="uploadScreenshot('student', event)" class="hidden">
                                     </label>
                                 </div>
-                                <textarea id="record-student" rows="8" placeholder="請記錄學生專注度、小組互動、課堂發言與特殊狀況..." class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-300 resize-none min-h-[200px]"></textarea>
+                                <textarea id="record-student" rows="9" placeholder="請記錄學生專注度、小組互動、課堂發言與特殊狀況..." class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-300 resize-none min-h-[220px]"></textarea>
                             </div>
                             <div id="student-screenshots" class="mt-2 grid grid-cols-2 gap-2"></div>
                         </div>
@@ -269,7 +240,7 @@
                                         <input type="file" accept="image/*" onchange="uploadScreenshot('teacher', event)" class="hidden">
                                     </label>
                                 </div>
-                                <textarea id="record-teacher" rows="8" placeholder="請記錄教師教學流程、板書媒體運用、提問引導與節奏控制..." class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-xs md:text-sm outline-none focus:ring-2 focus:ring-emerald-300 resize-none min-h-[200px]"></textarea>
+                                <textarea id="record-teacher" rows="9" placeholder="請記錄教師教學流程、板書媒體運用、提問引導與節奏控制..." class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-xs md:text-sm outline-none focus:ring-2 focus:ring-emerald-300 resize-none min-h-[220px]"></textarea>
                             </div>
                             <div id="teacher-screenshots" class="mt-2 grid grid-cols-2 gap-2"></div>
                         </div>
@@ -277,7 +248,7 @@
                     </div>
 
                     <!-- 觀課多媒體附件區 -->
-                    <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-2">
+                    <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-6">
                         <div class="flex justify-between items-center mb-2">
                             <span class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-images text-purple-600"></i> 觀課多媒體附件 (照片 / 影片)
@@ -288,9 +259,11 @@
                             </label>
                         </div>
                         <div id="media-gallery" class="grid grid-cols-3 gap-2">
-                            <!-- 多媒體縮圖卡片 -->
+                            <!-- 多媒體卡片 -->
                         </div>
                     </div>
+                </div>
+
                 <!-- 第二頁底部：日期與簽核區塊 -->
                 <div class="mt-4 pt-4 border-t border-slate-300">
                     <!-- 日期標記 (留白) -->
@@ -298,13 +271,11 @@
                         日期：___________________
                     </div>
 
-                    <!-- 簽核欄位 (三框等寬、巡堂人員姓名輸入框移至內部大空間) -->
+                    <!-- 簽核欄位 (三框等寬、完全留白供蓋章) -->
                     <div class="grid grid-cols-3 gap-4 text-center">
                         <div class="border-2 border-slate-400 rounded-lg p-2 flex flex-col justify-between h-24 bg-white">
                             <div class="font-bold text-slate-800 text-xs border-b border-slate-200 pb-1">巡堂人員</div>
-                            <div class="flex-1 flex items-center justify-center">
-                                <input type="text" id="inspector-name" value="輔導主任 陳建志" placeholder="請輸入姓名" class="font-bold text-slate-800 text-xs bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:bg-white focus:outline-none w-36 text-center">
-                            </div>
+                            <div class="flex-1"></div>
                         </div>
                         <div class="border-2 border-slate-400 rounded-lg p-2 flex flex-col justify-between h-24 bg-white">
                             <div class="font-bold text-slate-800 text-xs border-b border-slate-200 pb-1">教務處</div>
@@ -323,9 +294,9 @@
 
     </main>
 
-    <!-- ================= Modal 1: 編輯學生姓名/座號 ================= -->
+    <!-- ================= 編輯學生姓名/座號 Modal ================= -->
     <div id="student-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs mx-4 border border-slate-200">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs mx-4 border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <h4 class="text-base font-bold text-slate-900 mb-1" id="modal-title">編輯學生資訊</h4>
             <p class="text-xs text-slate-500 mb-4">請輸入新的座號與學生姓名</p>
             
@@ -347,7 +318,7 @@
         </div>
     </div>
 
-    <!-- ================= Modal 2: 重設二次確認 ================= -->
+    <!-- ================= 重設二次確認 Modal ================= -->
     <div id="reset-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
         <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs mx-4 text-center border border-slate-200">
             <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
@@ -363,7 +334,7 @@
         </div>
     </div>
 
-    <!-- ================= Modal 3: 歷史紀錄調閱 ================= -->
+    <!-- ================= 歷史紀錄調閱 Modal ================= -->
     <div id="history-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
         <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xl mx-4 max-h-[80vh] flex flex-col border border-slate-200">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -381,7 +352,7 @@
         </div>
     </div>
 
-    <!-- ================= Modal 4: 👁️ 1:1 高擬真 A4 直式 PDF 預覽 ================= -->
+    <!-- ================= 👁️ 高擬真 A4 直式 PDF 預覽 Modal ================= -->
     <div id="preview-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex flex-col items-center justify-between p-4 hidden no-print">
         
         <!-- 預覽視窗頁首 Bar -->
@@ -405,31 +376,31 @@
     </div>
 
 
-    <!-- ================= JavaScript 核心邏輯 ================= -->
+    <!-- ================= JavaScript 核心應用邏輯 ================= -->
     <script>
-        // 應用程式狀態變數
+        // 應用程式狀態
         let seatingData = [];
         let studentScreenshots = [];
         let teacherScreenshots = [];
         let mediaAttachments = [];
-        let seatingImageSrc = null;
         let editingTarget = null;
+        let currentRecordId = null;
 
-        // 初始化頁面
+        // 初始化
         window.addEventListener('DOMContentLoaded', () => {
             initDatetime();
             renderSeating();
             loadCurrentState();
         });
 
-        // 設定當前時間
+        // 預設設為當前時間
         function initDatetime() {
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('info-datetime').value = now.toISOString().slice(0, 16);
         }
 
-        // 顯示通知訊息 (Toast)
+        // 顯示通知訊息
         function showToast(msg, isSuccess = true) {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
@@ -442,120 +413,9 @@
             }, 2500);
         }
 
-        // 下載 CSV 範例檔 (內建 UTF-8 BOM `\uFEFF` 避免 Excel 亂碼)
-        function downloadSampleCSV() {
-            const csvContent = "\uFEFF排數,位置,座號,姓名\n1,1,01,王小明\n1,2,02,李小華\n1,3,03,張大衛\n1,4,04,陳美美\n1,5,05,林小花\n2,1,06,黃阿郎\n2,2,07,許志摩\n2,3,08,鄭十美\n2,4,09,劉一手\n2,5,10,趙大吉\n";
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', '日新國小學生名單範例.csv');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast("已成功下載學生名單範例檔！");
-        }
-
-        // 處理座位圖圖片或 Excel/CSV 匯入
-        function handleSeatImport(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // 如果是圖片檔案
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    seatingImageSrc = evt.target.result;
-                    document.getElementById('seating-image-preview').src = seatingImageSrc;
-                    document.getElementById('seating-image-preview-container').classList.remove('hidden');
-                    saveCurrentState();
-                    showToast("已成功載入參考座位圖！");
-                };
-                reader.readAsDataURL(file);
-            } 
-            // 如果是 Excel 或 CSV 試算表
-            else {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    try {
-                        const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                        if (json.length <= 1) {
-                            showToast("匯入檔案資料無效", false);
-                            return;
-                        }
-
-                        const header = json[0].map(h => String(h).trim().toLowerCase());
-                        let colIdx = header.findIndex(h => h.includes('排'));
-                        let rowIdx = header.findIndex(h => h.includes('位') || h.includes('號') || h.includes('個'));
-                        let numIdx = header.findIndex(h => h.includes('座號') || h.includes('學號'));
-                        let nameIdx = header.findIndex(h => h.includes('名') || h.includes('學生') || h.includes('name'));
-
-                        if (nameIdx === -1) nameIdx = 0;
-
-                        let importedCount = 0;
-                        let maxCol = parseInt(document.getElementById('cfg-cols').value) || 5;
-                        let maxRow = parseInt(document.getElementById('cfg-rows').value) || 5;
-
-                        for (let i = 1; i < json.length; i++) {
-                            const rowData = json[i];
-                            if (!rowData || rowData.length === 0) continue;
-
-                            let name = rowData[nameIdx] ? String(rowData[nameIdx]).trim() : '';
-                            let num = numIdx !== -1 && rowData[numIdx] ? String(rowData[numIdx]).trim() : String(i).padStart(2, '0');
-                            let targetCol = colIdx !== -1 && rowData[colIdx] ? parseInt(rowData[colIdx]) : null;
-                            let targetRow = rowIdx !== -1 && rowData[rowIdx] ? parseInt(rowData[rowIdx]) : null;
-
-                            if (!name) continue;
-
-                            if (!targetCol || !targetRow) {
-                                targetCol = Math.floor((i - 1) / maxRow) + 1;
-                                targetRow = ((i - 1) % maxRow) + 1;
-                            }
-
-                            if (targetCol > maxCol) maxCol = targetCol;
-                            if (targetRow > maxRow) maxRow = targetRow;
-
-                            const seat = seatingData.find(s => s.col === targetCol && s.row === targetRow);
-                            if (seat) {
-                                seat.name = name;
-                                seat.num = num;
-                            } else {
-                                seatingData.push({
-                                    col: targetCol, row: targetRow,
-                                    num: num, name: name, state: 'present'
-                                });
-                            }
-                            importedCount++;
-                        }
-
-                        document.getElementById('cfg-cols').value = maxCol;
-                        document.getElementById('cfg-rows').value = maxRow;
-                        renderSeating();
-                        showToast(`成功匯入 ${importedCount} 位學生名單！`);
-                    } catch (err) {
-                        console.error(err);
-                        showToast("解析匯入檔案失敗", false);
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            }
-        }
-
-        function removeSeatingImage() {
-            seatingImageSrc = null;
-            document.getElementById('seating-image-preview-container').classList.add('hidden');
-            document.getElementById('seating-image-preview').src = '';
-            saveCurrentState();
-        }
-
         // 渲染座位配置地圖 (關鍵：第 1 排在最右邊，從右向左遞減)
         function renderSeating() {
-            const cols = parseInt(document.getElementById('cfg-cols').value) || 5;
+            const cols = parseInt(document.getElementById('cfg-cols').value) || 6;
             const rows = parseInt(document.getElementById('cfg-rows').value) || 5;
             const container = document.getElementById('seating-grid-container');
             
@@ -613,7 +473,7 @@
                     else if (seat.state === 'nostudent') { stateClass = 'seat-state-nostudent'; stateLabel = '無學生'; }
 
                     // 卡片高度固定，按鈕固定卡在底部
-                    seatCard.className = `seat-card border rounded-lg p-1.5 text-center shadow-xs flex flex-col justify-between min-h-[78px] ${stateClass}`;
+                    seatCard.className = `seat-card border rounded-lg p-1.5 text-center shadow-xs flex flex-col justify-between min-h-[82px] ${stateClass}`;
                     seatCard.innerHTML = `
                         <div class="flex justify-between items-center text-[10px] font-bold opacity-75">
                             <span>#${seat.num}</span>
@@ -705,7 +565,7 @@
                 const div = document.createElement('div');
                 div.className = 'relative border rounded-lg overflow-hidden group bg-black/5';
                 div.innerHTML = `
-                    <img src="${src}" class="w-full h-18 object-cover">
+                    <img src="${src}" class="w-full h-20 object-cover">
                     <button onclick="removeScreenshot('${type}', ${idx})" class="no-print absolute top-1 right-1 bg-rose-600 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center opacity-80 hover:opacity-100">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -747,8 +607,8 @@
                 div.className = 'border border-slate-200 rounded-lg p-1.5 bg-white relative flex flex-col gap-1 shadow-xs';
                 
                 let mediaHtml = item.type === 'video'
-                    ? `<video src="${item.src}" controls class="w-full h-20 object-cover rounded bg-black"></video>`
-                    : `<img src="${item.src}" class="w-full h-20 object-cover rounded">`;
+                    ? `<video src="${item.src}" controls class="w-full h-24 object-cover rounded bg-black"></video>`
+                    : `<img src="${item.src}" class="w-full h-24 object-cover rounded">`;
 
                 div.innerHTML = `
                     <button onclick="removeMedia(${idx})" class="no-print absolute top-2 right-2 bg-rose-600 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center z-10 opacity-80 hover:opacity-100">
@@ -791,7 +651,6 @@
                 cols: document.getElementById('cfg-cols').value,
                 rows: document.getElementById('cfg-rows').value,
                 seatingData,
-                seatingImageSrc,
                 studentRecord: document.getElementById('record-student').value,
                 teacherRecord: document.getElementById('record-teacher').value,
                 studentScreenshots,
@@ -811,14 +670,9 @@
                 if (data.datetime) document.getElementById('info-datetime').value = data.datetime;
                 document.getElementById('info-section').value = data.section || '第一節';
                 document.getElementById('info-subject').value = data.subject || '';
-                document.getElementById('cfg-cols').value = data.cols || 5;
+                document.getElementById('cfg-cols').value = data.cols || 6;
                 document.getElementById('cfg-rows').value = data.rows || 5;
                 if (data.seatingData) seatingData = data.seatingData;
-                if (data.seatingImageSrc) {
-                    seatingImageSrc = data.seatingImageSrc;
-                    document.getElementById('seating-image-preview').src = seatingImageSrc;
-                    document.getElementById('seating-image-preview-container').classList.remove('hidden');
-                }
                 document.getElementById('record-student').value = data.studentRecord || '';
                 document.getElementById('record-teacher').value = data.teacherRecord || '';
                 if (data.studentScreenshots) studentScreenshots = data.studentScreenshots;
@@ -916,28 +770,16 @@
             [page1Clone, page2Clone].forEach((page, pageIdx) => {
                 page.querySelectorAll('.no-print').forEach(el => el.remove());
                 
-                // 將所有 Input / Select / Textarea 轉成靜態純文字
+                // 將所有 Input / Textarea 轉成靜態純文字
                 page.querySelectorAll('input, select, textarea').forEach(input => {
                     const val = input.value || '—';
                     const span = document.createElement('span');
-                    
-                    if (input.id === 'inspector-name') {
-                        span.className = 'font-bold text-slate-900 text-xs inline-block text-center';
-                        span.innerText = val;
-                        if (input.parentNode) {
-                            input.parentNode.replaceChild(span, input);
-                            return;
-                        }
-                    }
-
                     span.className = 'font-bold text-slate-900 border-b border-slate-300 px-1 py-0.5 inline-block w-full text-xs';
                     span.innerText = val;
                     if (input.tagName === 'TEXTAREA') {
                         span.className = 'whitespace-pre-wrap block text-xs p-2 bg-white rounded border border-slate-200 min-h-[180px]';
                     }
-                    if (input.parentNode) {
-                        input.parentNode.replaceChild(span, input);
-                    }
+                    input.parentNode.replaceChild(span, input);
                 });
 
                 // 包裹預覽白紙
@@ -958,20 +800,19 @@
 
         function closePreviewModal() { document.getElementById('preview-modal').classList.add('hidden'); }
 
-        // 📥 匯出 A4 直式高品質 PDF (嚴格雙頁不溢出)
+        // 📥 匯出 A4 直式高品質 PDF
         function exportPDF() {
             saveCurrentState();
             const element = document.getElementById('pdf-export-wrapper');
             const className = document.getElementById('info-class').value || '未命名班級';
 
-            // 匯出選項 (margin 設為 0，依靠容器內部 padding)
+            // 匯出選項
             const opt = {
-                margin:       [0, 0, 0, 0],
+                margin:       [5, 5, 5, 5],
                 filename:     `日新國小觀課巡堂紀錄表_${className}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['css', 'legacy'] }
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             showToast("正在生成 PDF 檔案...");
