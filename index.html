@@ -45,59 +45,87 @@
             color: #1e293b;
         }
 
-        /* A4 列印與 PDF 匯出強制雙頁精準規範 */
+        /* 嚴格 A4 直式列印規範，消除最後一頁空白 */
         @page {
             size: A4 portrait;
-            margin: 0mm;
+            margin: 0 !important;
         }
 
         @media print {
-            .no-print { display: none !important; }
-            body { 
-                background: white !important; 
-                padding: 0 !important; 
+            .no-print, header, #toast, #student-modal, #reset-modal, #history-modal, #preview-modal { 
+                display: none !important; 
+            }
+
+            html, body {
+                background: #ffffff !important;
+                padding: 0 !important;
                 margin: 0 !important;
+                width: 210mm !important;
+                height: 100% !important;
                 color: #000000 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            #pdf-export-wrapper {
-                width: 100% !important;
-                gap: 0 !important;
+
+            main {
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: none !important;
+                width: 210mm !important;
             }
+
+            #pdf-export-wrapper {
+                width: 210mm !important;
+                gap: 0 !important;
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* 頁面容器高度設定為 285mm (給予充足列印邊界緩衝，避免推擠產生空白頁) */
             .a4-container {
                 box-shadow: none !important;
                 border: none !important;
                 margin: 0 !important;
                 width: 210mm !important;
-                height: 297mm !important;
+                height: 285mm !important;
+                max-height: 285mm !important;
                 padding: 10mm 12mm !important;
                 box-sizing: border-box !important;
-                page-break-after: always;
-                break-after: page;
+                overflow: hidden !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
+
+            /* 第一頁強制下分頁 */
+            #page-1 {
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+
+            /* 第二頁嚴禁後方分頁 */
+            #page-2 {
+                page-break-before: always !important;
+                break-before: page !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
+
             textarea, input, select {
                 border: 1px solid #cbd5e1 !important;
                 background: transparent !important;
             }
         }
 
-        .page-break-before {
-            page-break-before: always;
-            break-before: page;
-        }
-
-        /* Seat Card States */
-        .seat-card {
-            transition: all 0.15s ease-in-out;
-        }
+        .seat-card { transition: all 0.15s ease-in-out; }
         .seat-state-present { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; }
         .seat-state-focus   { background-color: #fefce8; border-color: #fef08a; color: #854d0e; }
         .seat-state-absent  { background-color: #fef2f2; border-color: #fecaca; color: #991b1b; }
         .seat-state-active  { background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
         .seat-state-nostudent { background-color: #f8fafc; border-color: #cbd5e1; color: #64748b; opacity: 0.55; }
 
-        /* A4 Page Simulation for Display & Preview */
         .a4-container {
             width: 210mm;
             min-height: 297mm;
@@ -109,7 +137,6 @@
             position: relative;
         }
 
-        /* Custom Scrollbars */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
@@ -130,7 +157,6 @@
                 </span>
             </div>
 
-            <!-- 操作功能按鈕群 -->
             <div class="flex flex-wrap items-center gap-2 text-xs md:text-sm font-medium">
                 <button onclick="saveRecord()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md active:scale-95">
                     <i class="fa-solid fa-cloud-arrow-up"></i> 💾 儲存紀錄 (雲端)
@@ -151,26 +177,21 @@
         </div>
     </header>
 
-    <!-- 提示通知 (Toast) -->
     <div id="toast" class="fixed top-16 right-5 z-50 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-700 transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-2 text-sm">
         <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toast-msg">操作成功</span>
     </div>
 
-    <!-- 主要視窗與匯出PDF區域 -->
     <main class="max-w-6xl mx-auto mt-6 px-2 flex flex-col items-center gap-8">
 
         <div id="pdf-export-wrapper" class="flex flex-col gap-8 w-full items-center">
 
             <!-- ================= 第一頁：基本資訊與班級座位地圖 ================= -->
             <section id="page-1" class="a4-container rounded-none md:rounded-xl">
-                
-                <!-- 主標題 (無副標題) -->
                 <div class="text-center mb-5 pb-3 border-b-2 border-slate-800">
                     <h2 class="text-2xl font-black text-slate-900 tracking-wider">臺北市大同區日新國小觀課巡堂紀錄表</h2>
                 </div>
 
-                <!-- 基本資訊欄位 Grid -->
                 <div class="grid grid-cols-5 gap-3 mb-5 text-xs md:text-sm">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">班級</label>
@@ -202,7 +223,6 @@
                     </div>
                 </div>
 
-                <!-- 講台與門口標示列 -->
                 <div class="relative mb-4">
                     <div class="bg-slate-800 text-white text-center py-2 rounded-lg font-bold text-xs md:text-sm tracking-widest shadow-inner">
                         💻 黑板 / 講台方向
@@ -212,7 +232,6 @@
                     </div>
                 </div>
 
-                <!-- 排數與每排人數微調選單 (不列印) -->
                 <div class="flex justify-between items-center mb-3 text-xs text-slate-600 no-print">
                     <span class="font-bold text-slate-700 flex items-center gap-1">
                         <i class="fa-solid fa-sliders text-indigo-500"></i> 座位地圖設定
@@ -229,12 +248,8 @@
                     </div>
                 </div>
 
-                <!-- 班級座位配置 Grid -->
-                <div id="seating-grid-container" class="w-full overflow-hidden">
-                    <!-- 動態由 JS 生成 -->
-                </div>
+                <div id="seating-grid-container" class="w-full overflow-hidden"></div>
 
-                <!-- 狀態圖例與總人數 -->
                 <div class="mt-4 pt-3 border-t border-slate-200 flex flex-wrap justify-between items-center text-xs text-slate-700 gap-2">
                     <div class="flex flex-wrap items-center gap-3">
                         <span class="flex items-center gap-1 font-medium"><span class="w-3 h-3 rounded-full bg-emerald-200 border border-emerald-500 inline-block"></span> 出席</span>
@@ -251,19 +266,14 @@
 
 
             <!-- ================= 第二頁：觀課巡堂紀錄重點與簽核區 ================= -->
-            <section id="page-2" class="a4-container rounded-none md:rounded-xl page-break-before flex flex-col justify-between">
-                
+            <section id="page-2" class="a4-container rounded-none md:rounded-xl flex flex-col justify-between">
                 <div>
-                    <!-- 第二頁標題 -->
                     <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-slate-800">
                         <i class="fa-solid fa-pen-to-square text-indigo-600 text-lg"></i>
                         <h3 class="text-lg font-black text-slate-900 tracking-wide">觀課巡堂紀錄重點</h3>
                     </div>
 
-                    <!-- 學生情形與老師授課情形 (大空間輸入框) -->
                     <div class="grid grid-cols-2 gap-4 mb-5">
-                        
-                        <!-- 學生上課情形 -->
                         <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50 flex flex-col justify-between">
                             <div>
                                 <div class="flex justify-between items-center mb-2">
@@ -280,7 +290,6 @@
                             <div id="student-screenshots" class="mt-2 grid grid-cols-2 gap-2"></div>
                         </div>
 
-                        <!-- 老師授課情形 -->
                         <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50 flex flex-col justify-between">
                             <div>
                                 <div class="flex justify-between items-center mb-2">
@@ -296,10 +305,8 @@
                             </div>
                             <div id="teacher-screenshots" class="mt-2 grid grid-cols-2 gap-2"></div>
                         </div>
-
                     </div>
 
-                    <!-- 觀課多媒體附件區 -->
                     <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-6">
                         <div class="flex justify-between items-center mb-2">
                             <span class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
@@ -310,20 +317,15 @@
                                 <input type="file" accept="image/*,video/*" multiple onchange="handleMediaUpload(event)" class="hidden">
                             </label>
                         </div>
-                        <div id="media-gallery" class="grid grid-cols-3 gap-2">
-                            <!-- 多媒體卡片 -->
-                        </div>
+                        <div id="media-gallery" class="grid grid-cols-3 gap-2"></div>
                     </div>
                 </div>
 
-                <!-- 第二頁底部：日期與簽核區塊 -->
                 <div class="mt-4 pt-4 border-t border-slate-300">
-                    <!-- 日期標記 (留白) -->
                     <div class="font-bold text-slate-800 text-sm mb-4">
                         日期：___________________
                     </div>
 
-                    <!-- 簽核欄位 (巡堂人員輸入框改為空白留白) -->
                     <div class="grid grid-cols-3 gap-4 text-center">
                         <div class="border-2 border-slate-400 rounded-lg p-2 flex flex-col justify-between h-24 bg-white">
                             <div class="font-bold text-slate-800 text-xs border-b border-slate-200 pb-1">巡堂人員</div>
@@ -341,14 +343,11 @@
                         </div>
                     </div>
                 </div>
-
             </section>
-
         </div>
-
     </main>
 
-    <!-- ================= 編輯學生姓名/座號 Modal ================= -->
+    <!-- Modal 區域 -->
     <div id="student-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
         <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs mx-4 border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <h4 class="text-base font-bold text-slate-900 mb-1" id="modal-title">編輯學生資訊</h4>
@@ -372,7 +371,6 @@
         </div>
     </div>
 
-    <!-- ================= 重設二次確認 Modal ================= -->
     <div id="reset-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
         <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs mx-4 text-center border border-slate-200">
             <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
@@ -388,7 +386,6 @@
         </div>
     </div>
 
-    <!-- ================= 歷史紀錄調閱 Modal ================= -->
     <div id="history-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
         <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xl mx-4 max-h-[80vh] flex flex-col border border-slate-200">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -397,16 +394,13 @@
                 </h4>
                 <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div id="history-list" class="overflow-y-auto flex-1 space-y-2.5 pr-1">
-                <!-- 動態歷史清單 -->
-            </div>
+            <div id="history-list" class="overflow-y-auto flex-1 space-y-2.5 pr-1"></div>
             <div class="mt-4 pt-3 border-t flex justify-end">
                 <button onclick="closeHistoryModal()" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">關閉</button>
             </div>
         </div>
     </div>
 
-    <!-- ================= 👁️ 高擬真 A4 直式 PDF 預覽 Modal ================= -->
     <div id="preview-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex flex-col items-center justify-between p-4 hidden no-print">
         <div class="w-full max-w-4xl bg-slate-900 text-white p-3 rounded-xl flex justify-between items-center shadow-xl mb-3 border border-slate-800">
             <div class="flex items-center gap-2">
@@ -420,13 +414,9 @@
                 <button onclick="closePreviewModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
-        <div id="preview-container" class="overflow-y-auto flex-1 w-full max-w-4xl flex flex-col items-center gap-6 p-2">
-            <!-- 動態拷貝生成 -->
-        </div>
+        <div id="preview-container" class="overflow-y-auto flex-1 w-full max-w-4xl flex flex-col items-center gap-6 p-2"></div>
     </div>
 
-
-    <!-- ================= JavaScript 核心應用邏輯 ================= -->
     <script>
         let seatingData = [];
         let studentScreenshots = [];
@@ -907,10 +897,13 @@
 
         function closePreviewModal() { document.getElementById('preview-modal').classList.add('hidden'); }
 
-        /* 調用原生高品質標準 A4 直印機制，鎖定精準 2 頁 */
         function exportPDF() {
+            // 先關閉預覽 Modal，確保列印時 DOM 為乾淨的二頁
             closePreviewModal();
-            window.print();
+            // 給予 50ms 延遲讓 Modal 隱藏完全生效
+            setTimeout(() => {
+                window.print();
+            }, 50);
         }
     </script>
 </body>
