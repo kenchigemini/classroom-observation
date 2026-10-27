@@ -53,23 +53,17 @@
 
         @media print {
             .no-print { display: none !important; }
-            html, body {
-                background: white !important;
-                padding: 0 !important;
+            body { 
+                background: white !important; 
+                padding: 0 !important; 
                 margin: 0 !important;
                 color: #000000 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            main {
-                margin: 0 !important;
-                padding: 0 !important;
-                max-width: none !important;
-            }
             #pdf-export-wrapper {
                 width: 100% !important;
                 gap: 0 !important;
-                display: block !important;
             }
             .a4-container {
                 box-shadow: none !important;
@@ -79,18 +73,18 @@
                 height: 297mm !important;
                 padding: 10mm 12mm !important;
                 box-sizing: border-box !important;
-                overflow: hidden !important;
-                page-break-after: avoid !important;
-                page-break-inside: avoid !important;
-            }
-            #page-2 {
-                page-break-before: always !important;
-                break-before: page !important;
+                page-break-after: always;
+                break-after: page;
             }
             textarea, input, select {
                 border: 1px solid #cbd5e1 !important;
                 background: transparent !important;
             }
+        }
+
+        .page-break-before {
+            page-break-before: always;
+            break-before: page;
         }
 
         /* Seat Card States */
@@ -257,7 +251,7 @@
 
 
             <!-- ================= 第二頁：觀課巡堂紀錄重點與簽核區 ================= -->
-            <section id="page-2" class="a4-container rounded-none md:rounded-xl flex flex-col justify-between">
+            <section id="page-2" class="a4-container rounded-none md:rounded-xl page-break-before flex flex-col justify-between">
                 
                 <div>
                     <!-- 第二頁標題 -->
@@ -329,7 +323,7 @@
                         日期：___________________
                     </div>
 
-                    <!-- 簽核欄位 -->
+                    <!-- 簽核欄位 (巡堂人員輸入框改為空白留白) -->
                     <div class="grid grid-cols-3 gap-4 text-center">
                         <div class="border-2 border-slate-400 rounded-lg p-2 flex flex-col justify-between h-24 bg-white">
                             <div class="font-bold text-slate-800 text-xs border-b border-slate-200 pb-1">巡堂人員</div>
@@ -913,6 +907,7 @@
 
         function closePreviewModal() { document.getElementById('preview-modal').classList.add('hidden'); }
 
+        /* 調用原生高品質標準 A4 直印機制，鎖定精準 2 頁 */
         function exportPDF() {
             closePreviewModal();
             window.print();
