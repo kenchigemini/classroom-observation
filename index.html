@@ -16,9 +16,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // Firebase 完整配置 (已加入新加坡 asia-southeast1 資料庫網址)
         const firebaseConfig = {
             apiKey: "AIzaSyDs7C8x7XqV8aQewhc9vNSIsBK86Kdm3kM",
             authDomain: "rixin-observation.firebaseapp.com",
+            databaseURL: "https://rixin-observation-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "rixin-observation",
             storageBucket: "rixin-observation.firebasestorage.app",
             messagingSenderId: "177693333370",
